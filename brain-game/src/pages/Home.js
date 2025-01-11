@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "./Home.css";
 
 function Home() {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ function Home() {
   };
 
   return (
-    <div>
+    <div className="Home">
       <h1>Welcome to the Home Page</h1>
       <button onClick={handleStartGame}>Start Game</button>
     </div>
