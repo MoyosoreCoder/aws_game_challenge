@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  PutCommand,
+  GetCommand,
+} from "@aws-sdk/lib-dynamodb";
 
+//const ddb = new AWS.DynamoDB.DocumentClient({ region: "af-south-1" });
 function Game() {
   const [letter, setLetter] = useState("");
   const [word, setWord] = useState("");
@@ -7,6 +14,28 @@ function Game() {
   const [timer, setTimer] = useState(10);
   const timerRef = useRef(null);
   const [score, setScore] = useState(0);
+  const [isWordValid, setIsWordValid] = useState(false);
+
+  const updateScoreInDB = async (newScore) => {
+    try {
+      const response = await fetch("your-api-endpoint/update-score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          score: newScore,
+          userId: "user123", // Replace with actual user ID
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update score");
+      }
+    } catch (error) {
+      console.error("Error updating score:", error);
+    }
+  };
 
   // Generate a random letter
   const generateRandomLetter = () => {
@@ -39,14 +68,19 @@ function Game() {
   };
 
   const handleSubmit = async () => {
-    // Stop the timer
-    clearInterval(timerRef.current);
-    timerRef.current = null;
-    if (word.length !== 7) {
-      setFeedback("Word must be exactly 9 letters long!");
+    if (isWordValid) {
+      setFeedback("You already validated a word for this letter!");
       return;
     }
+    setIsWordValid(false);
 
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+
+    if (word.length !== 8) {
+      setFeedback("Word must be exactly 8 letters long!");
+      return;
+    }
     // Validate if the word starts with the random letter
     if (!word.toLowerCase().startsWith(letter)) {
       setFeedback(`"${word}" does not start with the letter "${letter}"!`);
@@ -60,7 +94,10 @@ function Game() {
       );
 
       if (response.ok) {
+        const newScore = score + 10; // Calculate new score
+        setScore(newScore); // Update score
         setFeedback(`"${word}" is a valid word!`);
+        setIsWordValid(true); // Mark word as validated
       } else if (response.status === 404) {
         setFeedback(`"${word}" is not a valid word!`);
       } else {
@@ -96,12 +133,12 @@ function Game() {
       </p>
       <input
         type="text"
-        pattern=".{9}"
+        pattern=".{8}"
         required
-        placeholder={`Enter a 9-letter word starting with ${letter}`}
+        placeholder={`Enter a 8-letter word starting with ${letter}`}
         value={word}
         onChange={(e) => setWord(e.target.value)}
-        title="Word must be exactly 9 characters long"
+        title="Word must be exactly 8 characters long"
       />
       <button onClick={handleSubmit}>Submit Word</button>
       <p>{feedback}</p>
