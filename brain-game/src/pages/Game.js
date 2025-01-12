@@ -14,25 +14,36 @@ function Game() {
     setFeedback(""); // Reset feedback
   };
 
-  // Handle word submission
   const handleSubmit = async () => {
-    // Use a valid API
-    const response = await fetch(
-      `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    // Validate if the word starts with the random letter
+    if (!word.toLowerCase().startsWith(letter)) {
+      setFeedback(`"${word}" does not start with the letter "${letter}"!`);
+      return;
+    }
 
-    if (response.ok) {
-      const result = await response.json();
-      setFeedback(`"${word}" is a valid word!`);
-    } else {
-      setFeedback(`"${word}" is not a valid word!`);
+    // Proceed to check if the word is valid via the dictionary API
+    try {
+      const response = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        setFeedback(`"${word}" is a valid word!`);
+        console.log(result); // For debugging
+      } else if (response.status === 404) {
+        setFeedback(`"${word}" is not a valid word!`);
+      } else {
+        setFeedback("An unexpected error occurred while checking the word.");
+      }
+    } catch (error) {
+      // Catch any network-related errors
+      setFeedback(
+        "Network error: Unable to connect to the dictionary API. Please check your connection and try again."
+      );
+      console.error("Network error:", error);
     }
   };
-
   // Generate random letter on component mount
   useEffect(() => {
     generateRandomLetter();
