@@ -5,16 +5,39 @@ function Game() {
   const [word, setWord] = useState("");
   const [feedback, setFeedback] = useState("");
   const [timer, setTimer] = useState(10);
+  const timerRef = useRef(null);
 
   // Generate a random letter
   const generateRandomLetter = () => {
     const alphabet = "abcdefghijklmnopqrstuvwxyz";
     setLetter(alphabet[Math.floor(Math.random() * alphabet.length)]);
-    setTimer(10); // Reset timer
+    setWord(""); // Reset word
     setFeedback(""); // Reset feedback
+    setTimer(10); // Reset timer to 10 seconds
+    clearInterval(timerRef.current); // Clear any existing timer
+    startTimer();
+  };
+
+  const startTimer = () => {
+    if (!timerRef.current) {
+      timerRef.current = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+            setFeedback("Time's up!");
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
   };
 
   const handleSubmit = async () => {
+    // Stop the timer
+    clearInterval(timerRef.current);
+    timerRef.current = null;
     // Validate if the word starts with the random letter
     if (!word.toLowerCase().startsWith(letter)) {
       setFeedback(`"${word}" does not start with the letter "${letter}"!`);
@@ -38,31 +61,19 @@ function Game() {
       }
     } catch (error) {
       // Catch any network-related errors
-      setFeedback(
-        "Network error: Unable to connect to the dictionary API. Please check your connection and try again."
-      );
+      setFeedback("Please check your connection and try again.");
       console.error("Network error:", error);
     }
   };
+
   // Generate random letter on component mount
   useEffect(() => {
     generateRandomLetter();
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval); // Stop timer
-          setFeedback("Time's up!");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [letter]);
+    return () => clearInterval(timerRef.current);
+  }, []);
 
   useEffect(() => {
     console.log(`New letter generated: ${letter}`);
