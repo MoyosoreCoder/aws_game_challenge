@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 function Game() {
   const [letter, setLetter] = useState("");
@@ -8,7 +8,7 @@ function Game() {
 
   // Generate a random letter
   const generateRandomLetter = () => {
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const alphabet = "abcdefghijklmnopqrstuvwxyz";
     setLetter(alphabet[Math.floor(Math.random() * alphabet.length)]);
     setTimer(10); // Reset timer
     setFeedback(""); // Reset feedback
@@ -24,10 +24,10 @@ function Game() {
         headers: { "Content-Type": "application/json" },
       }
     );
+
     if (response.ok) {
       const result = await response.json();
       setFeedback(`"${word}" is a valid word!`);
-      console.log(result);
     } else {
       setFeedback(`"${word}" is not a valid word!`);
     }
@@ -38,15 +38,24 @@ function Game() {
     generateRandomLetter();
   }, []);
 
-  // Countdown timer
   useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
-      return () => clearInterval(interval);
-    } else {
-      setFeedback("Time's up!");
-    }
-  }, [timer]);
+    const interval = setInterval(() => {
+      setTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval); // Stop timer
+          setFeedback("Time's up!");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [letter]);
+
+  useEffect(() => {
+    console.log(`New letter generated: ${letter}`);
+  }, [letter]);
 
   return (
     <div className="Game">
@@ -58,7 +67,7 @@ function Game() {
           <p>
             The random letter is: <strong>{letter}</strong>
           </p>
-          <p>Form a word with the random letter</p>
+          <p>Form a word with the random letter: {letter}</p>
           <p>
             Time Remaining: <strong>{timer}</strong> seconds
           </p>
