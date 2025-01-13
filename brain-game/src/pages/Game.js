@@ -1,149 +1,107 @@
-import React, { useState, useEffect, useRef } from "react";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  GetCommand,
-} from "@aws-sdk/lib-dynamodb";
+import React, { useState, useEffect } from "react";
 
-//const ddb = new AWS.DynamoDB.DocumentClient({ region: "af-south-1" });
-function Game() {
-  const [letter, setLetter] = useState("");
-  const [word, setWord] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [timer, setTimer] = useState(10);
-  const timerRef = useRef(null);
+const WordGame = () => {
+  const [currentWord, setCurrentWord] = useState(null);
+  const [userGuess, setUserGuess] = useState("");
   const [score, setScore] = useState(0);
-  const [isWordValid, setIsWordValid] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30); // 30-second timer
+  const [gameStatus, setGameStatus] = useState("playing");
 
-  const updateScoreInDB = async (newScore) => {
-    try {
-      const response = await fetch("your-api-endpoint/update-score", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          score: newScore,
-          userId: "user123", // Replace with actual user ID
-        }),
-      });
+  // Word list with their antonyms
+  const wordList = [
+    { word: "happy", antonym: "sad" },
+    { word: "brave", antonym: "cowardly" },
+    { word: "calm", antonym: "anxious" },
+    { word: "wise", antonym: "foolish" },
+    { word: "kind", antonym: "mean" },
+    { word: "swift", antonym: "slow" },
+    { word: "bright", antonym: "dim" },
+    { word: "strong", antonym: "weak" },
+    { word: "gentle", antonym: "rough" },
+    { word: "pure", antonym: "impure" },
+    { word: "dance", antonym: "stand" },
+    { word: "sing", antonym: "silence" },
+    { word: "jump", antonym: "sit" },
+    { word: "run", antonym: "walk" },
+    { word: "smile", antonym: "frown" },
+    { word: "friend", antonym: "enemy" },
+  ];
 
-      if (!response.ok) {
-        throw new Error("Failed to update score");
-      }
-    } catch (error) {
-      console.error("Error updating score:", error);
-    }
+  // Function to get a random word
+  const getRandomWord = () => {
+    const randomIndex = Math.floor(Math.random() * wordList.length);
+    setCurrentWord(wordList[randomIndex]);
   };
 
-  // Generate a random letter
-  const generateRandomLetter = () => {
-    const alphabet = "abcdefghijklmnopqrstuvwxyz";
-    const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-    setLetter(randomLetter);
-    setWord(""); // Reset word input
-    setFeedback(""); // Reset feedback
-    setTimer(10); // Reset timer to 10 seconds
-    clearInterval(timerRef.current); // Clear existing timer
-    startTimer(); // Start a new timer
-  };
-
-  const startTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current); // Clear any existing interval
-    }
-
-    timerRef.current = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerRef.current); // Stop timer when it reaches 0
-          timerRef.current = null;
-          setFeedback("Game over!");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000); // Decrement timer every second
-  };
-
-  const handleSubmit = async () => {
-    if (isWordValid) {
-      setFeedback("You already validated a word for this letter!");
-      return;
-    }
-    setIsWordValid(false);
-
-    clearInterval(timerRef.current);
-    timerRef.current = null;
-
-    if (word.length !== 8) {
-      setFeedback("Word must be exactly 8 letters long!");
-      return;
-    }
-    // Validate if the word starts with the random letter
-    if (!word.toLowerCase().startsWith(letter)) {
-      setFeedback(`"${word}" does not start with the letter "${letter}"!`);
-      return;
-    }
-
-    // Check if the word is valid using the dictionary API
-    try {
-      const response = await fetch(
-        `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
-      );
-
-      if (response.ok) {
-        const newScore = score + 10; // Calculate new score
-        setScore(newScore); // Update score
-        setFeedback(`"${word}" is a valid word!`);
-        setIsWordValid(true); // Mark word as validated
-      } else if (response.status === 404) {
-        setFeedback(`"${word}" is not a valid word!`);
-      } else {
-        setFeedback("An error occurred while checking the word.");
-      }
-    } catch (error) {
-      setFeedback("Please check your internet connection and try again.");
-    }
-  };
-
-  // Initialize a random letter when the component mounts
+  // Start the game with a random word
   useEffect(() => {
-    generateRandomLetter();
+    getRandomWord();
   }, []);
 
-  // Clean up the timer when the component unmounts
+  // Countdown timer
   useEffect(() => {
-    return () => clearInterval(timerRef.current);
-  }, []);
+    if (timeLeft > 0 && gameStatus === "playing") {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer); // Clean up the timer
+    } else if (timeLeft === 0) {
+      setGameStatus("finished");
+    }
+  }, [timeLeft, gameStatus]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Check if the user's guess matches the antonym
+    if (userGuess.toLowerCase() === currentWord.antonym) {
+      setScore(score + 1);
+      alert("Correct! 🎉");
+    } else {
+      alert(`Sorry, the correct antonym is: ${currentWord.antonym}`);
+    }
+
+    setUserGuess("");
+    getRandomWord(); // Get the next random word
+  };
 
   return (
-    <div className="Game">
-      <h2>Score: {score}</h2>
-      <button onClick={generateRandomLetter}>
-        Click to generate random letter
-      </button>
-      <p>
-        The random letter is: <strong>{letter}</strong>
-      </p>
-      <p>Form a word with the random letter: {letter}</p>
-      <p>
-        Time Remaining: <strong>{timer}</strong> seconds
-      </p>
-      <input
-        type="text"
-        pattern=".{8}"
-        required
-        placeholder={`Enter a 8-letter word starting with ${letter}`}
-        value={word}
-        onChange={(e) => setWord(e.target.value)}
-        title="Word must be exactly 8 characters long"
-      />
-      <button onClick={handleSubmit}>Submit Word</button>
-      <p>{feedback}</p>
+    <div className="word-game">
+      <h2>Antonym Guessing Game</h2>
+      <div className="score">
+        <strong>Score:</strong> {score}
+      </div>
+      <div className="timer">
+        <strong>Time Left:</strong> {timeLeft}s
+      </div>
+
+      {gameStatus === "playing" && currentWord && (
+        <div className="game-container">
+          <div className="word-info">
+            <p>
+              <strong>Word:</strong> {currentWord.word}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              value={userGuess}
+              onChange={(e) => setUserGuess(e.target.value)}
+              placeholder="Enter the antonym"
+            />
+            <button type="submit">Submit Guess</button>
+          </form>
+        </div>
+      )}
+
+      {gameStatus === "finished" && (
+        <div className="game-over">
+          <h3>Game Over!</h3>
+          <p>Final Score: {score}</p>
+          <button onClick={() => window.location.reload()}>Play Again</button>
+        </div>
+      )}
     </div>
   );
-}
+};
 
-export default Game;
+export default WordGame;
