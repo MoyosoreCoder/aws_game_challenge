@@ -27,7 +27,7 @@ To get started with the project locally, follow these steps:
    ```bash
    git clone https://github.com/your-username/my-react-game.git
    npx create-react-app
-   cd brain-game
+   cd my-react-game
    npm start
    ```
 
