@@ -1,0 +1,15 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-braingame-dev-fa181-authRole",
+      "UnauthRoleArn": "arn:aws:iam::509399604086:role/amplify-braingame-dev-fa181-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::509399604086:role/amplify-braingame-dev-fa181-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-braingame-dev-fa181-deployment",
+      "UnauthRoleName": "amplify-braingame-dev-fa181-unauthRole",
+      "StackName": "amplify-braingame-dev-fa181",
+      "StackId": "arn:aws:cloudformation:us-east-1:509399604086:stack/amplify-braingame-dev-fa181/479272c0-d23e-11ef-8d76-0afff28b3031",
+      "AmplifyAppId": "dy18p35e06cot"
+    }
+  }
+}

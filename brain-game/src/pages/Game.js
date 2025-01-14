@@ -38,6 +38,10 @@ const WordGame = () => {
     getRandomWord();
   }, []);
 
+  useEffect(() => {
+    getRandomWord();
+  }, []);
+
   // Countdown timer
   useEffect(() => {
     if (timeLeft > 0 && gameStatus === "playing") {
@@ -57,6 +61,7 @@ const WordGame = () => {
       alert("Correct! 🎉");
     } else {
       alert(`Sorry, the correct antonym is: ${currentWord.antonym}`);
+      console.log(`Sorry, the correct antonym is: ${currentWord.antonym}`);
     }
 
     setUserGuess("");
