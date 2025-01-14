@@ -10,7 +10,7 @@ Welcome to **React Game App**, a fun and interactive game built with React, AWS,
 
 ## Tech Stack
 
--**amazon Q developer** - an amazon ai chat agent that solves problem
+**amazon Q developer**: an amazon ai chat agent that solves problem
 
 - **React**: Frontend framework to build the user interface.
 - **AWS S3**: For static website hosting.
