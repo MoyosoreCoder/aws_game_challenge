@@ -21,21 +21,26 @@ Welcome to **My React Game App**, a fun and interactive game built with React, A
 
 To get started with the project locally, follow these steps:
 
-1. **Clone the repository**:
+##Clone the repository\*\*:
 
-   ```bash
-   git clone https://github.com/your-username/my-react-game.git
-   cd my-react-game
-   npm start
-   ```
+```bash
+git clone https://github.com/your-username/my-react-game.git
+cd my-react-game
+npm start
+```
 
-   -**This will start the React development server and open the app in your browser at http://localhost:3000** -**After the codes is complete, then deploy**
-
-2.**Deployment** -**The app is hosted on AWS S3 as a static website. To deploy it:**
-
--**Build the app for production:**
+-**This will start the React development server and open the app in your browser at http://localhost:3000** -**After the codes is complete, then deploy**
 
 ```bash
 npm run build
 aws s3 sync build/ s3://your-bucket-name --acl public-read
 ```
+
+3. **Test the Deployment**
+   **Visit your S3 bucket URL in the browser to ensure the app is working correctly. If you encounter any 404 errors for routes, configure your S3 bucket to redirect requests to index.html for React Router support.**
+
+4. **Contributing**
+   **Contributions are welcome! If you have ideas, suggestions, or find any bugs, feel free to open an issue or submit a pull request.**
+
+5.**License**
+**This project is licensed under the MIT License.**
